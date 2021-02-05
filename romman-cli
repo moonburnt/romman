@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+import logging
+import romman
+from sys import exit
+import argparse
+
+TOOL_NAME = "Romman"
+DATASHEET_DIRECTORY = "./Datasheets"
+
+log = logging.getLogger()
+#log.setLevel(logging.DEBUG)
+#log.setLevel(logging.WARNING)
+log.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter(fmt='[%(asctime)s][%(name)s][%(levelname)s] %(message)s', datefmt='%H:%M:%S'))
+log.addHandler(handler)
+
+#argparse shenanigans
+ap = argparse.ArgumentParser()
+ap.add_argument("files", help="Files to compare with database", nargs='+', type=str)
+args = ap.parse_args()
+
+log.info("Loading the database")
+try:
+    nointro = romman.file_processing.get_files(DATASHEET_DIRECTORY)
+except Exception as e:
+    log.critical(f"A critical error has occured while getting list of datasheet files: {e}")
+    exit(1)
+
+database = []
+for item in nointro:
+    try:
+        data = romman.data_parsers.nointro(item)
+        data['category'] = 'No-Intro'
+        data['hash'] = romman.hashcheck.crc32sum(item)
+    except Exception as e:
+        log.warning(f"Couldnt process data file {item}: {e}")
+    else:
+        database.append(data)
+
+if not database:
+    log.critical(f"No valid database entries has been found! Abort")
+    exit(1)
+
+log.info("Calculating hash sums of provided files")
+files = []
+for item in args.files:
+    try:
+        crc = romman.hashcheck.crc32sum(item)
+    except Exception as e:
+        log.warning(f"Couldnt process file {item}: {e}. Skipping")
+        continue
+    else:
+        data = {}
+        data['file'] = item
+        data['crc'] = crc
+        files.append(data)
+
+if not files:
+    log.critical(f"No valid file entries has been received! Abort")
+    exit(1)
+
+log.debug(f"Got following files to process: {files}")
+#This creates list of all files known to database
+#I should probably redesign the whole way I add new entries to database list, coz this is a clusterfuck
+known_files = [f for item in database for entry in item['content'] for f in entry['files']]
+
+#I should get rid of lists comprehension there too, coz idk how to log things with that being there
+matching_files = [item for item in files for entry in known_files if item['crc'] == entry['crc']]
+
+matches = len(matching_files)
+misses = len(args.files) - matches
+
+print(f"{TOOL_NAME} has finished its job: got {matches} files matching provided database and {misses} misses")
+print("Done")
