@@ -11,6 +11,9 @@ This is but **data verification tool**. It **does not and will never download an
 - Unpack them to ./Datasheets/nointro
 - Run `./romman-cli files-you-want-to-verify`
 
+Example usage:
+`./romman-cli myfancyrom.gba`
+
 Example output will be like:
 `Romman has finished its job: got 1 files matching provided database and 0 misses`
 
@@ -25,7 +28,7 @@ Example output will be like:
 - Redesign internal database structure to make process of comparing data more convenient
 - Add support for redump and tosec data files (maybe also mame)
 - Automatically update data files to newest available versions
-- Ability to verify whole directory's content (including subfolders. Maybe add flag or something for that)
+- Ability to verify whole directories at once, including subfolders (coz right now you can only verify one level by passing directory like `dirname/*`)
 - Verify games in zip archives
 - Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
 - Rename matching files with non-matching names (in case they are archived - skip)
