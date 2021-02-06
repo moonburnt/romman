@@ -4,9 +4,11 @@ import logging
 import romman
 from sys import exit
 import argparse
+from os.path import join
 
 TOOL_NAME = "Romman"
-DATASHEET_DIRECTORY = "./Datasheets"
+DEFAULT_DATASHEETS_DIRECTORY= "./Datasheets"
+DEFAULT_NOINTRO_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "nointro")
 
 log = logging.getLogger()
 #log.setLevel(logging.DEBUG)
@@ -18,18 +20,33 @@ log.addHandler(handler)
 
 #argparse shenanigans
 ap = argparse.ArgumentParser()
-ap.add_argument("items", help="ROMs or directories with ROMs to compare with database", nargs='+', type=str)
+ap.add_argument("items", help="Path to ROM file or directory with ROMs to compare with database. Can be multiple. If directory - will fetch content from all subdirectories", nargs='+', type=str)
+ap.add_argument("--datfiles", help="Custom path to data file or directory with data files, used to compare ROMs with instead of default. Can be multiple. Also process subdirectories", nargs='*', type=str)
 args = ap.parse_args()
 
+if args.datfiles:
+    datasheets = args.datfiles
+    log.debug(f"Attempting to load {args.datfiles} instead of default datasheets")
+else:
+    datasheets = [DEFAULT_DATASHEETS_DIRECTORY]
+
 log.info("Loading the database")
-try:
-    nointro = romman.file_processing.get_files(DATASHEET_DIRECTORY)
-except Exception as e:
-    log.critical(f"A critical error has occured while getting list of datasheet files: {e}")
+data_files = []
+for item in datasheets:
+    try:
+        df = romman.file_processing.get_files(item)
+    except Exception as e:
+        log.warning(f"Couldnt process datasheets on path {item}: {e}")
+        continue
+    else:
+        data_files.extend(df)
+
+if not data_files:
+    log.critical(f"Couldnt find any valid data files! Abort")
     exit(1)
 
 database = []
-for item in nointro:
+for item in data_files:
     try:
         data = romman.data_parsers.nointro(item)
         data['category'] = 'No-Intro'
@@ -40,7 +57,7 @@ for item in nointro:
         database.append(data)
 
 if not database:
-    log.critical(f"No valid database entries has been found! Abort")
+    log.critical(f"Couldnt find any valid database entries! Abort")
     exit(1)
 
 log.info("Getting the filelist from provided arguments")

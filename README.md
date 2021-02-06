@@ -8,7 +8,7 @@ This is but **data verification tool**. It **does not and will never download an
 
 ## Usage
 - Download up-to-date .dat files from https://datomatic.no-intro.org/index.php?page=download&op=daily&s=64
-- Unpack them to ./Datasheets/nointro
+- Unpack them to ./Datasheets
 - Run `./romman-cli files-you-want-to-verify`
 
 Example usage:
@@ -17,18 +17,19 @@ Example usage:
 Example output will be like:
 `Romman has finished its job: got 1 files matching provided database and 0 misses`
 
-You can also provide whole folders to get parsed. Say, to parse the whole content (including all subdirectories) of "Mydir", just type:
+You can also parse content of whole directories. Say, to fetch everything inside (including content of all subdirectories) of "Mydir", just type:
 `./romman-cli ./Mydir`
 
+For complete list of currently available functionality run
+`./romman-cli -h`
 
 ## Currently implemented:
-- Compare provided files with no-intro .dat files placed into ./Datasheets/nointro
+- Compare provided files with no-intro .dat files placed into ./Datasheets
 - Print total usage statistics at the end into stdout (e.g amount of hits and misses)
+- Ability to specify non-default datasheet path (or directly target datasheet files) with --datfiles flag
 
 ## TODO:
 
-- Launch flag for custom directory with .dat files
-- Launch flag to make it possible to provide your own dat file(s) to compare roms with
 - Redesign internal database structure to make process of comparing data more convenient
 - Add support for redump and tosec data files (maybe also mame)
 - Automatically update data files to newest available versions
