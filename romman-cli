@@ -18,7 +18,7 @@ log.addHandler(handler)
 
 #argparse shenanigans
 ap = argparse.ArgumentParser()
-ap.add_argument("files", help="Files to compare with database", nargs='+', type=str)
+ap.add_argument("items", help="ROMs or directories with ROMs to compare with database", nargs='+', type=str)
 args = ap.parse_args()
 
 log.info("Loading the database")
@@ -43,13 +43,24 @@ if not database:
     log.critical(f"No valid database entries has been found! Abort")
     exit(1)
 
+log.info("Getting the filelist from provided arguments")
+filepaths = []
+for item in args.items:
+    try:
+        f = romman.file_processing.get_files(item)
+    except Exception as e:
+        log.warning(f"Couldnt get files from {item}: {e}. Skipping")
+        continue
+    else:
+        filepaths.extend(f)
+
 log.info("Calculating hash sums of provided files")
 files = []
-for item in args.files:
+for item in filepaths:
     try:
         crc = romman.hashcheck.crc32sum(item)
     except Exception as e:
-        log.warning(f"Couldnt process file {item}: {e}. Skipping")
+        log.warning(f"Couldnt get hash of {item}: {e}. Skipping")
         continue
     else:
         data = {}
@@ -70,7 +81,7 @@ known_files = [f for item in database for entry in item['content'] for f in entr
 matching_files = [item for item in files for entry in known_files if item['crc'] == entry['crc']]
 
 matches = len(matching_files)
-misses = len(args.files) - matches
+misses = len(filepaths) - matches
 
 print(f"{TOOL_NAME} has finished its job: got {matches} files matching provided database and {misses} misses")
 print("Done")

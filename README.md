@@ -17,6 +17,10 @@ Example usage:
 Example output will be like:
 `Romman has finished its job: got 1 files matching provided database and 0 misses`
 
+You can also provide whole folders to get parsed. Say, to parse the whole content (including all subdirectories) of "Mydir", just type:
+`./romman-cli ./Mydir`
+
+
 ## Currently implemented:
 - Compare provided files with no-intro .dat files placed into ./Datasheets/nointro
 - Print total usage statistics at the end into stdout (e.g amount of hits and misses)
@@ -28,7 +32,6 @@ Example output will be like:
 - Redesign internal database structure to make process of comparing data more convenient
 - Add support for redump and tosec data files (maybe also mame)
 - Automatically update data files to newest available versions
-- Ability to verify whole directories at once, including subfolders (coz right now you can only verify one level by passing directory like `dirname/*`)
 - Verify games in zip archives
 - Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
 - Rename matching files with non-matching names (in case they are archived - skip)
