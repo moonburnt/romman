@@ -6,8 +6,8 @@ from lxml import etree
 
 log = logging.getLogger(__name__)
 
-def nointro(datafile):
-    '''Receives str(path/to/nointro-data-filefile.dat), returns dictionary featuring info about dat file itself and contained games (filenames, hashsums). Only standard DAT is supported - PC XML and PC XMDB will throw error, due to having different internal structure'''
+def dat_file(datafile):
+    '''Receives str(path/to/datasheet.dat), returns list with games from that file (game name, files, hash sums, name of datasheet and group that made it). Only standard DAT is supported - attempting to parse other xmls will throw error, due to different internal structure'''
     log.debug(f"Processing datasheet: {datafile}")
     with open(datafile) as f:
         rawxml = f.read()
@@ -15,30 +15,31 @@ def nointro(datafile):
 
     log.debug(f"Attempting to fetch header")
     #this may fail if dat file has incorrect structure.
-    data = {} #probably need to create placeholder dictionary entries which then will be replaced with actual?
-    data['filename'] = datafile
     #header always comes first, so we dont need to process whole xml
     for item in xmldata.getchildren()[0]:
         if item.tag == "name":
-            data['name'] = item.text
-            break #coz for now thats the only thing we need that can be gathered from header
-    log.debug(f"Got following header data: {data}")
+            group = item.text
+        if item.tag == "homepage":
+            category = item.text
+            break #coz this tag goes below "name", thus no need to parse afterwards
+    log.debug(f"Got following header data: {group, category}")
 
     log.debug(f"Attempting to fetch game entries")
     data_list = []
     for item in xmldata.getchildren()[1:]:
         #this doesnt verify if datfile has all the necessary entries
         #meaning it will cause exception if, say, some file is but placeholder
-        datadic = {}
-        datadic['game'] = item.attrib['name'] #this may backfire without try/except too
+        game_name = item.attrib['name']
         for entry in item.getchildren():
-            entry_data = [] #doing it this way coz some games may feature multiple valid files
+            #doing it this way coz some games may feature multiple valid files
             if entry.tag == "rom":
-                entry_data.append(entry.attrib)
-            datadic['files'] = entry_data
-        log.debug(f"Got following game info: {datadic}")
-        data_list.append(datadic)
-    data['content'] = data_list
+                #no need to specify entry_data's type coz entry.attrib is already dictionary
+                entry_data = entry.attrib
+                entry_data['game'] = game_name
+                entry_data['group'] = group
+                entry_data['category'] = category
+                log.debug(f"Got following info: {entry_data}")
+                data_list.append(entry_data)
 
-    log.debug(f"Processed content of {datafile} is the following: {data}")
-    return data
+    log.debug(f"Obtained {len(data_list)} entries from {datafile}")
+    return data_list
