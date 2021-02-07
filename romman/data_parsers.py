@@ -1,5 +1,10 @@
-#this contains all the parsers to process data files
-#as for now - only nointro is supported
+## Romman - yet another tool to compare your console ROMs with accuracy-focused datasheets
+## Copyright (c) 2021 moonburnt
+##
+## This program is licensed under Anti-Capitalist Software License.
+## For terms and conditions, see attached LICENSE file.
+
+# This module contains functions related to obtaining data from datasheets
 
 import logging
 from lxml import etree

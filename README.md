@@ -1,10 +1,12 @@
+# Romman
+
 ## Disclaimer
 
 This is but **data verification tool**. It **does not and will never download any games**. Its designed to be used with **your very own ROM files**, you dumped from **your own consoles** (and only if your current jurisdiction legally allows that).
 
 ## Description
 
-**Romman** (temporary name, I just didnt manage to make any nerdy joke that would fit better) is a tool to verify hashes of your console ROM files and compare them with entries from datasheets, considered "the most accurate" by community (meaning if your rom didnt match any of these - then you probably dumped it incorrectly). Right now the following datasheet sources are supported: no-intro, tosec, redump.
+**Romman** (short of "rom manager". I dont like it too, if you can find a better name - make an issue) is a tool to verify hashes of your console ROM files and compare them with entries from datasheets, considered "the most accurate" by community (meaning if your rom didnt match any of these - then you probably dumped it incorrectly). Right now the following datasheet sources are supported: no-intro, tosec, redump.
 
 ## Usage
 - Download up-to-date .dat files from your source of choice (supported providers listed in description above)
@@ -38,4 +40,8 @@ For complete list of currently available functionality run
 - Avoid swimming in ram (either by dumping data into cache file or comparing files directly with sheets, without keeping them in ram)
 - Log stdout to something like info.log and stderr to error.log
 - Maybe make pyqt5 gui
+- Find a better name
 
+## License:
+
+For memes, [ACSL v1.4](LICENSE)

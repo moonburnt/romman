@@ -1,4 +1,10 @@
-# Verify hash sums of received files
+## Romman - yet another tool to compare your console ROMs with accuracy-focused datasheets
+## Copyright (c) 2021 moonburnt
+##
+## This program is licensed under Anti-Capitalist Software License.
+## For terms and conditions, see attached LICENSE file.
+
+# This module contain functions related to calculating hash sums of files
 
 from hashlib import md5
 from zlib import crc32
