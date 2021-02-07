@@ -26,9 +26,9 @@ For complete list of currently available functionality run
 `./romman-cli -h`
 
 ## Currently implemented:
-- Compare roms with no-intro/tosec/redump .dat files (either placed into ./Datasheets or specified with --datfiles flag)
+- Compare roms with no-intro/tosec/redump .dat files (either placed into ./Datasheets directory or specified with --datfiles flag)
 - Log info about which ROM has matched which entry from which datasheet
-- Print total usage statistics at the end into stdout (e.g amount hits, misses and files tool couldnt verify for whatever reasons)
+- Print total usage statistics at the end (e.g amount of hits, misses and files tool couldnt verify for whatever reasons) into stdout
 
 ## TODO:
 
