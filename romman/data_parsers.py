@@ -10,10 +10,10 @@ def dat_file(datafile):
     '''Receives str(path/to/datasheet.dat), returns list with games from that file (game name, files, hash sums, name of datasheet and group that made it). Only standard DAT is supported - attempting to parse other xmls will throw error, due to different internal structure'''
     log.debug(f"Processing datasheet: {datafile}")
     with open(datafile) as f:
-        rawxml = f.read()
-    #avoiding "Unicode strings with encoding declaration are not supported" error, thrown by some tosec files
-    #idk if its inefficient and I should go for try/except, instead of parsing everything this way
-    xmldata = etree.fromstring(bytes(rawxml, encoding="utf-8"))
+        #going this way instead of .read() to avoid encoding-specific errors
+        rawxml = etree.parse(f)
+
+    xmldata = rawxml.getroot()
 
     log.debug(f"Attempting to fetch header")
     #this may fail if dat file has incorrect structure.
