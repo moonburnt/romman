@@ -11,8 +11,6 @@ DEFAULT_DATASHEETS_DIRECTORY= "./Datasheets"
 DEFAULT_NOINTRO_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "nointro")
 
 log = logging.getLogger()
-#log.setLevel(logging.DEBUG)
-#log.setLevel(logging.WARNING)
 log.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter(fmt='[%(asctime)s][%(name)s][%(levelname)s] %(message)s', datefmt='%H:%M:%S'))
@@ -22,7 +20,11 @@ log.addHandler(handler)
 ap = argparse.ArgumentParser()
 ap.add_argument("items", help="Path to ROM file or directory with ROMs to compare with database. Can be multiple. If directory - will fetch content from all subdirectories", nargs='+', type=str)
 ap.add_argument("--datfiles", help="Custom path to data file or directory with data files, used to compare ROMs with instead of default. Can be multiple. Also process subdirectories", nargs='*', type=str)
+ap.add_argument("--debug", help="Add debug messages to program's output", action="store_true")
 args = ap.parse_args()
+
+if args.debug:
+    log.setLevel(logging.DEBUG) #Overriding default value from above
 
 if args.datfiles:
     datasheets = args.datfiles
