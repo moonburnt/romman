@@ -33,7 +33,7 @@ For complete list of currently available functionality run
 ## TODO:
 
 - Maybe add support for mame xmls
-- Ability fetch newest available datasheets
+- Ability to fetch newest available datasheets
 - Verify games in zip archives
 - Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
 - Rename matching files with non-matching names (in case they are archived - skip)
