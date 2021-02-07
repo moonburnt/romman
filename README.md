@@ -4,10 +4,10 @@ This is but **data verification tool**. It **does not and will never download an
 
 ## Description
 
-**Romman** (temporary name, I just didnt manage to make any nerdy joke that would fit better) is a tool to verify hashes of your console ROM files and compare them to database entries. For now it only supports No-Intro .dat files, but more to come
+**Romman** (temporary name, I just didnt manage to make any nerdy joke that would fit better) is a tool to verify hashes of your console ROM files and compare them with entries from datasheets, considered "the most accurate" by community (meaning if your rom didnt match any of these - then you probably dumped it incorrectly). Right now the following datasheet sources are supported: no-intro, tosec, redump.
 
 ## Usage
-- Download up-to-date .dat files from https://datomatic.no-intro.org/index.php?page=download&op=daily&s=64
+- Download up-to-date .dat files from your source of choice (supported providers listed in description above)
 - Unpack them to ./Datasheets
 - Run `./romman-cli files-you-want-to-verify`
 
@@ -24,19 +24,18 @@ For complete list of currently available functionality run
 `./romman-cli -h`
 
 ## Currently implemented:
-- Compare provided files with no-intro .dat files placed into ./Datasheets
-- Print total usage statistics at the end into stdout (e.g amount of hits and misses)
-- Ability to specify non-default datasheet path (or directly target datasheet files) with --datfiles flag
+- Compare roms with no-intro/tosec/redump .dat files (either placed into ./Datasheets or specified with --datfiles flag)
+- Log info about which ROM has matched which entry from which datasheet
+- Print total usage statistics at the end into stdout (e.g amount hits, misses and files tool couldnt verify for whatever reasons)
 
 ## TODO:
 
-- Redesign internal database structure to make process of comparing data more convenient
-- Add support for redump and tosec data files (maybe also mame)
-- Automatically update data files to newest available versions
+- Maybe add support for mame xmls
+- Ability fetch newest available datasheets
 - Verify games in zip archives
 - Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
 - Rename matching files with non-matching names (in case they are archived - skip)
-- Detailed log with data about which files got affected
+- Avoid swimming in ram (either by dumping data into cache file or comparing files directly with sheets, without keeping them in ram)
 - Log stdout to something like info.log and stderr to error.log
 - Maybe make pyqt5 gui
 

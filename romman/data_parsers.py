@@ -11,7 +11,9 @@ def dat_file(datafile):
     log.debug(f"Processing datasheet: {datafile}")
     with open(datafile) as f:
         rawxml = f.read()
-    xmldata = etree.fromstring(rawxml)
+    #avoiding "Unicode strings with encoding declaration are not supported" error, thrown by some tosec files
+    #idk if its inefficient and I should go for try/except, instead of parsing everything this way
+    xmldata = etree.fromstring(bytes(rawxml, encoding="utf-8"))
 
     log.debug(f"Attempting to fetch header")
     #this may fail if dat file has incorrect structure.
@@ -19,9 +21,12 @@ def dat_file(datafile):
     for item in xmldata.getchildren()[0]:
         if item.tag == "name":
             group = item.text
+        if item.tag == "category":
+            category = item.text
+            break #coz this tag presents in non-iso tosec dumps INSTEAD of "homepage"
         if item.tag == "homepage":
             category = item.text
-            break #coz this tag goes below "name", thus no need to parse afterwards
+            break #coz this tag goes below everything else, thus no need to parse afterwards
     log.debug(f"Got following header data: {group, category}")
 
     log.debug(f"Attempting to fetch game entries")
