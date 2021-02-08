@@ -17,6 +17,7 @@ DEFAULT_DATASHEETS_DIRECTORY= "./Datasheets"
 DEFAULT_NOINTRO_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "nointro")
 DEFAULT_REDUMP_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "redump")
 DEFAULT_TOSEC_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "tosec")
+DEFAULT_MAME_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "mame")
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -57,8 +58,19 @@ if not data_files:
 
 database = []
 for item in data_files:
+    #this check is meh, but important - applying wrong parser to wrong file worthy hundreds of mbytes may eat all ram
+    if item.endswith('.dat'.lower()):
+        log.debug(f"Guessing that {item} is standard .dat file and proceeding accordingly")
+        parser = romman.data_parsers.dat_file
+    elif item.endswith('.xml'.lower()):
+        log.debug(f"Guessing that {item} is mame .xml file and proceeding accordingly")
+        parser = romman.data_parsers.mame_xml
+    else:
+        log.warning(f"Couldnt process data file {item}: unknown file format")
+        continue
+
     try:
-        data = romman.data_parsers.dat_file(item)
+        data = parser(item)
     except Exception as e:
         log.warning(f"Couldnt process data file {item}: {e}")
     else:
@@ -102,10 +114,20 @@ log.debug(f"Got following files to process: {files}")
 matches = 0
 for item in files:
     for entry in database:
-        if item['crc'] == entry['crc']:
-            log.info(f"{item['file']} match {entry['name']} in {entry['group']} of {entry['category']}!")
-            matches += 1
-            break #this only breaks "for entry" cycle - "for item" continues with next file
+        try:
+            if item['crc'] == entry['crc']:
+                log.info(f"{item['file']} match {entry['name']} in {entry['group']} of {entry['category']}!")
+                matches += 1
+                break #this only breaks "for entry" cycle - "for item" continues with next file
+        except KeyError:
+            #this is debug, coz it floods the output on mame xmls otherwise
+            #if I will really add ablity to use md5/sha1 instead of crc - maybe I should do separate check?
+            #e.g additional loop that will remove all database entries without info about selected hashsum type
+            log.debug(f"Couldnt compare {item['file']} with {entry['name']}: data entry has no valid hash information. Skipping")
+            continue
+        except Exception as e:
+            log.warning(f"Couldnt compare {item['file']} with {entry['name']}: {e}. Skipping")
+            continue
 
 errors = len(filepaths) - len(files)
 misses = len(files) - matches
