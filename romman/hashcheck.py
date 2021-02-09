@@ -28,7 +28,6 @@ def md5sum(filepath, chunk_size = DEFAULT_CHUNK_SIZE):
             hs.update(chunk) #this adds hashes of new chunks to previously calculated ones
 
     hashsum = hs.hexdigest()
-    hashsum = hashsum.upper()
 
     log.debug(f"Got md5 sum: {hashsum}")
     return hashsum
@@ -43,7 +42,6 @@ def crc32sum(filepath):
 
     hx = hex(hs)
     hashsum = hx.replace('0x', '')
-    hashsum = hashsum.upper()
 
     log.debug(f"Got crc32 sum: {hashsum}")
     return hashsum
