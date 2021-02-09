@@ -95,15 +95,12 @@ log.info("Calculating hash sums of provided files")
 files = []
 for item in filepaths:
     try:
-        crc = romman.hashcheck.crc32sum(item)
+        data = romman.file_processing.file_processor(item)
     except Exception as e:
         log.warning(f"Couldnt get hash of {item}: {e}. Skipping")
         continue
     else:
-        data = {}
-        data['file'] = item
-        data['crc'] = crc
-        files.append(data)
+        files.extend(data)
 
 if not files:
     log.critical(f"No valid file entries has been received! Abort")
@@ -118,17 +115,17 @@ for item in files:
             #I should probably bring everything to lowercase while fetching hashes from datasheets
             #thus said - "if it works, it works", even if it may be less resource-efficient
             if item['crc'] == entry['crc'].lower():
-                log.info(f"{item['file']} match {entry['name']} in {entry['group']} of {entry['category']}!")
+                log.info(f"{item['path']} match {entry['name']} in {entry['group']} of {entry['category']}!")
                 matches += 1
                 break #this only breaks "for entry" cycle - "for item" continues with next file
         except KeyError:
             #this is debug, coz it floods the output on mame xmls otherwise
-            #if I will really add ablity to use md5/sha1 instead of crc - maybe I should do separate check?
+            #if I will really add ability to use md5/sha1 instead of crc - maybe I should do separate check?
             #e.g additional loop that will remove all database entries without info about selected hashsum type
-            log.debug(f"Couldnt compare {item['file']} with {entry['name']}: data entry has no valid hash information. Skipping")
+            log.debug(f"Couldnt compare {item['path']} with {entry['name']}: data entry has no valid hash information. Skipping")
             continue
         except Exception as e:
-            log.warning(f"Couldnt compare {item['file']} with {entry['name']}: {e}. Skipping")
+            log.warning(f"Couldnt compare {item['path']} with {entry['name']}: {e}. Skipping")
             continue
 
 errors = len(filepaths) - len(files)
