@@ -8,7 +8,7 @@
 
 import logging
 from zipfile import ZipFile, is_zipfile
-from os import listdir
+from os import listdir, makedirs
 from os.path import isfile, isdir, join, basename
 from romman import hashcheck
 
@@ -108,3 +108,29 @@ def file_processor(pathtofile):
 
     log.debug(f"Successfully gathered info about {pathtofile}, returning")
     return data
+
+def save_file(data, filename, filedir):
+    '''Receives data in binary form, str(name of file) and str(directory to save that file into). Saves provided data as filedir/filename'''
+    #avoiding the situation when filedir doesnt exist
+    makedirs(filedir, exist_ok=True)
+    save_path = join(filedir, filename)
+
+    #there probably should be check to ensure that you have enough disk space
+    #say, by checking the size of data and comparing with free space on filedir location
+    with open(save_path, 'wb') as f:
+        f.write(data)
+
+    log.debug(f"Successfully saved {filename} as {save_path}")
+
+#dis should be part of file processing too
+def extract_zip(path_to_zip, output_directory):
+    '''Receives str(path to zip archive) and str(directory to unpack it to). Unpacks archive into that dir'''
+    log.debug(f"Attempting to unpack {path_to_zip} into {output_directory}")
+    makedirs(output_directory, exist_ok=True)
+
+    with ZipFile(path_to_zip, 'r') as zf:
+        #it may be nice to check for available disk space first
+        #but right now Im not doing this. Maybe later. #TODO
+        zf.extractall(output_directory)
+
+    log.debug(f"Successfully extracted {path_to_zip} into {output_directory}")

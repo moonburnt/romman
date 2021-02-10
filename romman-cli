@@ -12,12 +12,11 @@ from sys import exit
 import argparse
 from os.path import join
 
-TOOL_NAME = "Romman"
-DEFAULT_DATASHEETS_DIRECTORY= "./Datasheets"
-DEFAULT_NOINTRO_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "nointro")
-DEFAULT_REDUMP_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "redump")
-DEFAULT_TOSEC_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "tosec")
-DEFAULT_MAME_DIRECTORY = join(DEFAULT_DATASHEETS_DIRECTORY, "mame")
+TOOL_NAME = romman.configuration.TOOL_NAME
+LAUNCHER_NAME = f"{TOOL_NAME}-cli"
+PROGRAM_DIRECTORY = romman.configuration.PROGRAM_DIRECTORY
+CACHE_DIRECTORY = romman.configuration.CACHE_DIRECTORY
+DEFAULT_DATASHEETS_DIRECTORY = romman.configuration.DEFAULT_DATASHEETS_DIRECTORY
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -27,13 +26,23 @@ log.addHandler(handler)
 
 #argparse shenanigans
 ap = argparse.ArgumentParser()
-ap.add_argument("items", help="Path to ROM file or directory with ROMs to compare with database. Can be multiple. If directory - will fetch content from all subdirectories", nargs='+', type=str)
+ap.add_argument("items", help="Path to ROM file or directory with ROMs to compare with database. Can be multiple. If directory - will fetch content from all subdirectories", nargs='*', type=str)
 ap.add_argument("--datfiles", help="Custom path to data file or directory with data files, used to compare ROMs with instead of default. Can be multiple. Also process subdirectories", nargs='*', type=str)
 ap.add_argument("--debug", help="Add debug messages to program's output", action="store_true")
+ap.add_argument("--update-datfiles", help="Fetch newest available datfiles from sites of their authors", action="store_true")
 args = ap.parse_args()
 
 if args.debug:
     log.setLevel(logging.DEBUG) #Overriding default value from above
+
+if args.update_datfiles:
+    log.info("Updating the database (may take some time)")
+    romman.dat_updater.datasheets_updater()
+    log.info("Successfully updated the database!")
+
+if not args.items:
+    print(f"Got no ROMs to verify! For usage info, see {LAUNCHER_NAME} -h")
+    exit(0)
 
 if args.datfiles:
     datasheets = args.datfiles

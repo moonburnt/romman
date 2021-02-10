@@ -7,6 +7,8 @@
 from .hashcheck import *
 from .data_parsers import *
 from .file_processing import *
+from .dat_updater import *
+from .configuration import *
 
 import logging
 

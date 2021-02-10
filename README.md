@@ -8,6 +8,10 @@ This is but **data verification tool**. It **does not and will never download an
 
 **Romman** (short of "rom manager". I dont like it too, if you can find a better name - make an issue) is a tool to verify hashes of your console ROM files and compare them with entries from datasheets, considered "the most accurate" by community (meaning if your ROM didnt match any of these - then you probably dumped it incorrectly). Right now the following datasheet sources are supported: no-intro (only "Standard DAT"), tosec, redump, mame (only large xml from site, not separate data files from github).
 
+## Dependencies
+- python 3.8 (may work on older versions, didnt test)
+- requests (to fetch newest datasheets)
+
 ## Usage
 - Download up-to-date .dat files from your source of choice (supported providers listed in description above)
 - Unpack them to ./Datasheets
@@ -31,10 +35,12 @@ For complete list of currently available functionality run
 - Print total usage statistics at the end (e.g amount of hits, misses and files tool couldnt verify for whatever reasons) into stdout
 - Iterative datasheets parsing, so 250mbytes-large file wont eat all your ram
 - Ability to verify ROMs stored inside zip archives
+- `--update-datfiles` flag to batch-download all latest available datasheets
 
 ## TODO:
 
-- Ability to fetch newest available datasheets
+- Ability to customize datasheets updater's options. E.g to download only sheets from selected sources
+- Remove obsolete datasheets. Either by purging everything from updater-related subdirectories of./Datasheets by default, or via some additional launch flag
 - Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
 - Rename matching files with non-matching names (in case they are archived - skip)
 - Log stdout to something like info.log and stderr to error.log
