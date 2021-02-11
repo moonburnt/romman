@@ -103,8 +103,6 @@ for item in data_files:
     except Exception as e:
         log.warning(f"Couldnt process data file {item}: {e}")
         continue
-
-
     else:
         database.extend(data)
 

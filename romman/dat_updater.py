@@ -108,6 +108,8 @@ def datasheets_updater(sources):
 
     log.debug(f'Attempting to download latest datasheets from {prefixes}')
 
+    #maybe I should redesign this part to download and do the stuff right away?
+    #this way we could save some disk space, due to lack of need to keep all archives at once
     downloaders = []
     if NOINTRO_PREFIX in prefixes:
         downloaders.append(get_nointro)
@@ -124,10 +126,6 @@ def datasheets_updater(sources):
         except Exception as e:
             log.warning(f"Unable to fetch latest datasheet: {e}. Skipping")
             continue
-
-    #this version unpacks everything from tosec achive, which include .cue and other garbage
-    #thus I probably need to either make another loop for that, or add optional argument to extractor
-    #which will specify which files should be extracted, and which dont
 
     log.debug(f"Getting the list of downloaded archives")
     for prefix in prefixes:
@@ -151,8 +149,15 @@ def datasheets_updater(sources):
 
         log.debug(f"Extracting datasheets from {archive_directory} to {datasheets_directory}")
         for ar in archives:
+            #avoiding tosec-specific issue with archives containing non-dat garbage
+            if prefix == TOSEC_PREFIX:
+                fetch_dirs = ['TOSEC/', 'TOSEC-ISO/']
+                extractor_args = ar, datasheets_directory, fetch_dirs
+            else:
+                extractor_args = ar, datasheets_directory
+
             try:
-                file_processing.extract_zip(ar, datasheets_directory)
+                file_processing.extract_zip(*extractor_args)
             except Exception as e:
                 log.warning(f"Unable to extract {ar} into {datasheets_directory}: {e}. Skipping")
                 continue

@@ -122,15 +122,23 @@ def save_file(data, filename, filedir):
 
     log.debug(f"Successfully saved {filename} as {save_path}")
 
-#dis should be part of file processing too
-def extract_zip(path_to_zip, output_directory):
-    '''Receives str(path to zip archive) and str(directory to unpack it to). Unpacks archive into that dir'''
+def extract_zip(path_to_zip, output_directory, extract_dirs=None):
+    '''Receives str(path to zip archive) and str(directory to unpack it to). Optionally receives list(directories, from which to extract content). Unpacks everything (in case no valid arguments has been provided) or content of all selected zip's directories into provided directory'''
     log.debug(f"Attempting to unpack {path_to_zip} into {output_directory}")
     makedirs(output_directory, exist_ok=True)
 
     with ZipFile(path_to_zip, 'r') as zf:
         #it may be nice to check for available disk space first
         #but right now Im not doing this. Maybe later. #TODO
-        zf.extractall(output_directory)
+
+        #attempting to extract all files from selected directories
+        #if there are no hits - just batch-extract everything
+        files = None
+        if extract_dirs:
+            #this may backfire, if 'f' doesnt end with '/'
+            #in case there are other files with names starting with 'f'
+            files = {name for f in extract_dirs for name in zf.namelist() if name.startswith(f)}
+
+        zf.extractall(output_directory, files)
 
     log.debug(f"Successfully extracted {path_to_zip} into {output_directory}")
