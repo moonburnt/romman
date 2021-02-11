@@ -41,11 +41,17 @@ def roms_fetcher(datafile, tag, group, category):
     data_list = []
     for event, item in raw_roms:
         game_name = item.find('description').text
-        #I could go for separate loop, but Im lazy so Im doing another for cycle inside
+        #I could go for separate loop, but Im lazy so Im doing another 'for' cycle inside
         for entry in item.findall('rom'):
-            #making a copy of entry.attrib dict, coz it will be wiped below
-            #and yes - this saves more ram, than continuing to reference entry.attrib
-            entry_data = dict(entry.attrib)
+            #this will reduce ram usage even further, coz we only log necessary info of matching entries
+            entry_data = {}
+            entry_data['name'] = entry.attrib['name']
+            try:
+                #if I will ever decide to implement md5/sha1 verification - this will need adjustments
+                entry_data['crc'] = entry.attrib['crc']
+            except KeyError:
+                log.debug(f"{entry_data['name']} has no valid hash information. Skipping")
+                continue
             entry_data['game'] = game_name
             entry_data['group'] = group
             entry_data['category'] = category

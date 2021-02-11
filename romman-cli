@@ -102,6 +102,9 @@ for item in data_files:
         data = parser(item)
     except Exception as e:
         log.warning(f"Couldnt process data file {item}: {e}")
+        continue
+
+
     else:
         database.extend(data)
 
@@ -147,12 +150,6 @@ for item in files:
                 log.info(f"{item['path']} match {entry['name']} in {entry['group']} of {entry['category']}!")
                 matches += 1
                 break #this only breaks "for entry" cycle - "for item" continues with next file
-        except KeyError:
-            #this is debug, coz it floods the output on mame xmls otherwise
-            #if I will really add ability to use md5/sha1 instead of crc - maybe I should do separate check?
-            #e.g additional loop that will remove all database entries without info about selected hashsum type
-            log.debug(f"Couldnt compare {item['path']} with {entry['name']}: data entry has no valid hash information. Skipping")
-            continue
         except Exception as e:
             log.warning(f"Couldnt compare {item['path']} with {entry['name']}: {e}. Skipping")
             continue
