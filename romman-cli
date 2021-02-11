@@ -144,9 +144,7 @@ matches = 0
 for item in files:
     for entry in database:
         try:
-            #I should probably bring everything to lowercase while fetching hashes from datasheets
-            #thus said - "if it works, it works", even if it may be less resource-efficient
-            if item['crc'] == entry['crc'].lower():
+            if item['crc'] == entry['crc']:
                 log.info(f"{item['path']} match {entry['name']} in {entry['group']} of {entry['category']}!")
                 matches += 1
                 break #this only breaks "for entry" cycle - "for item" continues with next file

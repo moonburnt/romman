@@ -48,7 +48,8 @@ def roms_fetcher(datafile, tag, group, category):
             entry_data['name'] = entry.attrib['name']
             try:
                 #if I will ever decide to implement md5/sha1 verification - this will need adjustments
-                entry_data['crc'] = entry.attrib['crc']
+                #applying 'lower', coz nointro has hashes in caps
+                entry_data['crc'] = entry.attrib['crc'].lower()
             except KeyError:
                 log.debug(f"{entry_data['name']} has no valid hash information. Skipping")
                 continue
