@@ -125,11 +125,9 @@ def datasheets_updater(sources):
             log.warning(f"Unable to fetch latest datasheet: {e}. Skipping")
             continue
 
-    #current implementation is EXTEMELY lazy, as it doesnt remove older entries from disk
-    #I may do something about that... eventually
-    #also this version unpacks everything from tosec achive, which include .cue and other garbage
+    #this version unpacks everything from tosec achive, which include .cue and other garbage
     #thus I probably need to either make another loop for that, or add optional argument to extractor
-    #which will list which files should be extracted, and which dont
+    #which will specify which files should be extracted, and which dont
 
     log.debug(f"Getting the list of downloaded archives")
     for prefix in prefixes:
@@ -140,6 +138,17 @@ def datasheets_updater(sources):
             continue
 
         datasheets_directory = join(DEFAULT_DATASHEETS_DIRECTORY, prefix)
+        log.debug(f"Removing old datasheets from {datasheets_directory}")
+        #hopefully our user dont store anything of value inside datasheets_directory or its subdirs
+        old_datasheets = file_processing.get_files(datasheets_directory)
+        for f in old_datasheets:
+            try:
+                log.debug(f"Removing {f}")
+                remove(f)
+            except Exception as e:
+                log.warning(f"Unable to remove {f}: {e}. Skipping")
+                continue
+
         log.debug(f"Extracting datasheets from {archive_directory} to {datasheets_directory}")
         for ar in archives:
             try:
