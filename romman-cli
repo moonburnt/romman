@@ -18,6 +18,11 @@ PROGRAM_DIRECTORY = romman.configuration.PROGRAM_DIRECTORY
 CACHE_DIRECTORY = romman.configuration.CACHE_DIRECTORY
 DEFAULT_DATASHEETS_DIRECTORY = romman.configuration.DEFAULT_DATASHEETS_DIRECTORY
 
+NOINTRO_PREFIX = romman.configuration.NOINTRO_PREFIX
+REDUMP_PREFIX = romman.configuration.REDUMP_PREFIX
+TOSEC_PREFIX = romman.configuration.TOSEC_PREFIX
+MAME_PREFIX = romman.configuration.MAME_PREFIX
+
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 handler = logging.StreamHandler()
@@ -26,18 +31,24 @@ log.addHandler(handler)
 
 #argparse shenanigans
 ap = argparse.ArgumentParser()
-ap.add_argument("items", help="Path to ROM file or directory with ROMs to compare with database. Can be multiple. If directory - will fetch content from all subdirectories", nargs='*', type=str)
-ap.add_argument("--datfiles", help="Custom path to data file or directory with data files, used to compare ROMs with instead of default. Can be multiple. Also process subdirectories", nargs='*', type=str)
-ap.add_argument("--debug", help="Add debug messages to program's output", action="store_true")
-ap.add_argument("--update-datfiles", help="Fetch newest available datfiles from sites of their authors", action="store_true")
+ap.add_argument("items", help=f"Path to ROM file or directory with ROMs to compare with database. You can supply multiple paths at once. If directory - {TOOL_NAME} will also seek for ROMs in its subdirectories", nargs='*', type=str)
+ap.add_argument("--datfiles", help=f"Custom path to datasheet file or directory with datasheets. If used - {TOOL_NAME} will compare ROMs with these instead of default datasheets. You can supply multiple paths at once. If directory - {TOOL_NAME} will also seek for datasheets in its subdirectories", nargs='*', type=str)
+ap.add_argument("--debug", help=f"Add debug messages to {TOOL_NAME}'s output", action="store_true")
+ap.add_argument("--update-datfiles", help=f"Download latest available datasheets. Can be used with provider-specific prefixes. If no valid prefixes has been received - will batch-download datasheets from all supported providers. Valid prefixes are the following: {NOINTRO_PREFIX}, {REDUMP_PREFIX}, {TOSEC_PREFIX}, {MAME_PREFIX}", nargs='*', type=str)
 args = ap.parse_args()
 
 if args.debug:
     log.setLevel(logging.DEBUG) #Overriding default value from above
 
-if args.update_datfiles:
+#this is nasty as hell, but thats the best way to ensure that args.update_datfiles has been passed
+#even if its empty. Or at least out of solutions I've found. Maybe there is better
+try:
+    len(args.update_datfiles)
+except:
+    pass
+else:
     log.info("Updating the database (may take some time)")
-    romman.dat_updater.datasheets_updater()
+    romman.dat_updater.datasheets_updater(args.update_datfiles)
     log.info("Successfully updated the database!")
 
 if not args.items:

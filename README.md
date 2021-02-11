@@ -35,11 +35,10 @@ For complete list of currently available functionality run
 - Print total usage statistics at the end (e.g amount of hits, misses and files tool couldnt verify for whatever reasons) into stdout
 - Iterative datasheets parsing, so 250mbytes-large file wont eat all your ram
 - Ability to verify ROMs stored inside zip archives
-- `--update-datfiles` flag to batch-download all latest available datasheets
+- `--update-datfiles` flag to download latest available datasheets. Can be used with provider-specific prefixes. If no valid (or no prefixes at all) has been received - will batch-download datasheets from all supported providers. **Valid prefixes** are the following: `nointro, redump, tosec, mame`
 
 ## TODO:
 
-- Ability to customize datasheets updater's options. E.g to download only sheets from selected sources
 - Remove obsolete datasheets. Either by purging everything from updater-related subdirectories of./Datasheets by default, or via some additional launch flag
 - Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
 - Rename matching files with non-matching names (in case they are archived - skip)

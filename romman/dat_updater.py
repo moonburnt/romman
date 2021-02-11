@@ -19,10 +19,10 @@ CACHE_DIRECTORY = configuration.CACHE_DIRECTORY
 DEFAULT_DATASHEETS_DIRECTORY = configuration.DEFAULT_DATASHEETS_DIRECTORY
 DATASHEETS_DOWNLOAD_DIRECTORY = join(CACHE_DIRECTORY, 'Downloads')
 
-NOINTRO_PREFIX = "nointro"
-REDUMP_PREFIX = "redump"
-TOSEC_PREFIX = "tosec"
-MAME_PREFIX = "mame"
+NOINTRO_PREFIX = configuration.NOINTRO_PREFIX
+REDUMP_PREFIX = configuration.REDUMP_PREFIX
+TOSEC_PREFIX = configuration.TOSEC_PREFIX
+MAME_PREFIX = configuration.MAME_PREFIX
 
 NOINTRO_URL = 'https://datomatic.no-intro.org'
 TOSEC_URL = 'https://www.tosecdev.org'
@@ -95,11 +95,30 @@ def get_mame():
     download_directory = join(DATASHEETS_DOWNLOAD_DIRECTORY, MAME_PREFIX)
     file_processing.save_file(datasheet_archive.content, 'mame.zip', download_directory)
 
-def datasheets_updater():
-    '''Downloads all the latest datasheets and unpack them into related subdirectories inside DEFAULT_DATASHEETS_DIRECTORY'''
-    #Maybe add ability to dont batch-update everything at once, but only selected entries?
-    log.debug(f"Attempting to download latest datasheets")
-    for func in (get_nointro, get_tosec, get_redump, get_mame):
+def datasheets_updater(sources):
+    '''Receives sources list. Match it against known prefixes, then for all matches - downloads related latest datasheets and unpack them into their subdirectories inside DEFAULT_DATASHEETS_DIRECTORY. If no valid arguments has been provided - will batch-download all datasheets'''
+    log.debug('Determining the list of download sources')
+    #using sets to avoid situations when user supplied multiple arguments of same value
+    #could only do that for non-default thing, but I want consistency
+    default_prefixes = {NOINTRO_PREFIX, REDUMP_PREFIX, TOSEC_PREFIX, MAME_PREFIX}
+    prefixes = {item for item in sources for prefix in default_prefixes if item == prefix}
+
+    if not prefixes:
+        prefixes = default_prefixes
+
+    log.debug(f'Attempting to download latest datasheets from {prefixes}')
+
+    downloaders = []
+    if NOINTRO_PREFIX in prefixes:
+        downloaders.append(get_nointro)
+    if REDUMP_PREFIX in prefixes:
+        downloaders.append(get_redump)
+    if TOSEC_PREFIX in prefixes:
+        downloaders.append(get_tosec)
+    if MAME_PREFIX in prefixes:
+        downloaders.append(get_mame)
+
+    for func in downloaders:
         try:
             func()
         except Exception as e:
@@ -113,7 +132,7 @@ def datasheets_updater():
     #which will list which files should be extracted, and which dont
 
     log.debug(f"Getting the list of downloaded archives")
-    for prefix in (NOINTRO_PREFIX, REDUMP_PREFIX, TOSEC_PREFIX, MAME_PREFIX):
+    for prefix in prefixes:
         archive_directory = join(DATASHEETS_DOWNLOAD_DIRECTORY, prefix)
         archives = file_processing.get_files(archive_directory)
         if not archives:

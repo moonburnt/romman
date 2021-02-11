@@ -11,3 +11,8 @@ TOOL_NAME = "romman"
 PROGRAM_DIRECTORY = '.' #to be replaced with other stuff later
 CACHE_DIRECTORY = join(PROGRAM_DIRECTORY, 'Cache') #maybe overkill, but for crossplatform compatibility
 DEFAULT_DATASHEETS_DIRECTORY = join(PROGRAM_DIRECTORY, "Datasheets")
+
+NOINTRO_PREFIX = "nointro"
+REDUMP_PREFIX = "redump"
+TOSEC_PREFIX = "tosec"
+MAME_PREFIX = "mame"
