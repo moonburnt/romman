@@ -41,7 +41,8 @@ For complete list of currently available functionality run
 
 - Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
 - Rename matching files with non-matching names (in case they are archived - skip)
-- Log stdout to something like info.log and stderr to error.log
+- Maybe add ability to verify files by other means than crc32 (e.g md5 or sha1 or just filesize. In case of first two - archives will be skipped, obviously)
+- Maybe log stdout to something like info.log and stderr to error.log
 - Maybe reduce ram usage even further (probably by providing hard limits on maximum database size and dumping it into cache file, if it gets to that point)
 - Maybe add ability to verify 7z-archived ROMs
 - Maybe make pyqt5 gui
