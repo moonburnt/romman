@@ -10,6 +10,7 @@ import logging
 import romman
 from sys import exit
 import argparse
+from os import makedirs
 from os.path import join
 
 TOOL_NAME = romman.configuration.TOOL_NAME
@@ -66,14 +67,22 @@ data_files = []
 for item in datasheets:
     try:
         df = romman.file_processing.get_files(item)
+    except FileNotFoundError as e:
+        #ensuring that directory we will reffer to in message below exists
+        #I know this looks ugly, maybe will find a better solution later
+        if item == DEFAULT_DATASHEETS_DIRECTORY:
+            makedirs(DEFAULT_DATASHEETS_DIRECTORY, exist_ok=True)
+        else:
+            log.warning(f"{item} doesnt exist. Skipping")
+            continue
     except Exception as e:
-        log.warning(f"Couldnt process datasheets on path {item}: {e}")
+        log.warning(f"Couldnt process datasheets on path {item}: {e}. Skipping")
         continue
     else:
         data_files.extend(df)
 
 if not data_files:
-    log.critical(f"Couldnt find any valid data files! Abort")
+    log.critical(f"Couldnt find any valid data files! Either place them manually into {DEFAULT_DATASHEETS_DIRECTORY} or run {LAUNCHER_NAME} --update-datfiles to download latest datasheets from supported sources")
     exit(1)
 
 database = []
