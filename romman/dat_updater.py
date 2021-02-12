@@ -106,29 +106,29 @@ def datasheets_updater(sources):
     if not prefixes:
         prefixes = default_prefixes
 
-    log.debug(f'Attempting to download latest datasheets from {prefixes}')
+    log.debug(f'Got following prefixes: {prefixes}')
+    for prefix in prefixes:
+        if prefix == NOINTRO_PREFIX:
+            downloader = get_nointro
+        elif prefix == REDUMP_PREFIX:
+            downloader = get_redump
+        elif prefix == TOSEC_PREFIX:
+            downloader = get_tosec
+        elif prefix == MAME_PREFIX:
+            downloader = get_mame
+        else:
+            #it should NOT be possible to trigger this, Im just trying to be extra cautious
+            log.warning(f"Unknown prefix: {prefix}. Skipping")
+            continue
 
-    #maybe I should redesign this part to download and do the stuff right away?
-    #this way we could save some disk space, due to lack of need to keep all archives at once
-    downloaders = []
-    if NOINTRO_PREFIX in prefixes:
-        downloaders.append(get_nointro)
-    if REDUMP_PREFIX in prefixes:
-        downloaders.append(get_redump)
-    if TOSEC_PREFIX in prefixes:
-        downloaders.append(get_tosec)
-    if MAME_PREFIX in prefixes:
-        downloaders.append(get_mame)
-
-    for func in downloaders:
+        log.debug(f'Attempting to download latest datasheets from {prefix}')
         try:
-            func()
+            downloader()
         except Exception as e:
             log.warning(f"Unable to fetch latest datasheet: {e}. Skipping")
             continue
 
-    log.debug(f"Getting the list of downloaded archives")
-    for prefix in prefixes:
+        log.debug(f"Getting the list of downloaded archives")
         archive_directory = join(DATASHEETS_DOWNLOAD_DIRECTORY, prefix)
         archives = file_processing.get_files(archive_directory)
         if not archives:

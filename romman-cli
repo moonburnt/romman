@@ -156,9 +156,9 @@ for item, entry in matching_files:
             #maybe put this on try/except?
             rename(original_name, new_name)
             renamed_files_counter += 1
-        if args.allow_rename and item['is_zip']:
+        elif args.allow_rename and item['is_zip']:
             log.warning(f"{item['path']} has incorrect name, but is part of archive - wont rename")
-        if not args.allow_rename:
+        else:
             log.warning(f"{item['path']} has incorrect name. Is {item['name']}, should be {entry['name']}")
 
 matches_counter = len(matching_files)
