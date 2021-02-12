@@ -9,28 +9,28 @@
 import logging
 from zipfile import ZipFile, is_zipfile
 from os import listdir, makedirs
-from os.path import isfile, isdir, join, basename
+from os.path import isfile, isdir, join, basename, dirname
 from romman import hashcheck
 
 log = logging.getLogger(__name__)
 
-def get_files(dirname):
+def get_files(pathtodir):
     '''Receives str(path to directory with files), returns list(files in directory)'''
     files = []
     #this check is useless in loop below, but allows to use this function to verify every item passed by user
     #maybe I should move it to separate function, but for now I wont bother
-    if isfile(dirname):
-        log.debug(f"{dirname} itself is a file, returning")
-        files.append(dirname)
+    if isfile(pathtodir):
+        log.debug(f"{pathtodir} itself is a file, returning")
+        files.append(pathtodir)
         return files
 
-    log.debug(f"Attempting to parse directory {dirname}")
-    directory_content = listdir(dirname)
+    log.debug(f"Attempting to parse directory {pathtodir}")
+    directory_content = listdir(pathtodir)
     log.debug(f"Uncategorized content inside is: {directory_content}")
 
     for item in directory_content:
         log.debug(f"Processing {item}")
-        itempath = join(dirname, item)
+        itempath = join(pathtodir, item)
         if isdir(itempath):
             log.debug(f"{itempath} leads to directory, attempting to process its content")
             files += get_files(itempath) #looping over this very function for all subdirectories
@@ -43,7 +43,7 @@ def get_files(dirname):
     return files
 
 def get_zip_info(pathtofile):
-    '''Receives str(path/to/zipfile.zip. Return list containing dictionaries with each file's info - name, hashsum, path to archive and mention that its zip archive'''
+    '''Receives str(path/to/zipfile.zip. Return list containing dictionaries with each file's info - name, hashsum, path to file inside archive, full path to archive and mention that its zip archive'''
     log.debug(f"Attempting to parse zip archive: {pathtofile}")
 
     datalist = []
@@ -63,6 +63,8 @@ def get_zip_info(pathtofile):
                 #this may be jank, but will do for log output
                 #which is the only thing why this entry exists anyway
                 data['path'] = join(pathtofile, internal_path)
+                #unlike normal files - this one is located inside zip, so its kinda logical
+                data['location'] = pathtofile
                 data['is_zip'] = True
 
                 log.debug(f"Got following data: {data}")
@@ -72,7 +74,7 @@ def get_zip_info(pathtofile):
     return datalist
 
 def get_file_info(pathtofile):
-    '''Receives str(path/to/file). Returns list containing dictionary with filename, hashsum, path to file and mention that its not zip archive'''
+    '''Receives str(path/to/file). Returns list containing dictionary with filename, hashsum, full path to file, file's location and mention that its not zip archive'''
     log.debug(f"Attempting to fetch info from {pathtofile}")
 
     #List is completely unnecessary, but since zip files have these - I kinda have to follow same route
@@ -85,6 +87,7 @@ def get_file_info(pathtofile):
         data['name'] = basename(pathtofile)
         data['crc'] = crc
         data['path'] = pathtofile
+        data['location'] = dirname(pathtofile)
         data['is_zip'] = False
 
         log.debug(f"Got following data: {data}")

@@ -13,20 +13,16 @@ This is but **data verification tool**. It **does not and will never download an
 - requests (to fetch newest datasheets)
 
 ## Usage
-- Download up-to-date .dat files from your source of choice (supported providers listed in description above)
-- Unpack them to ./Datasheets
-- Run `./romman-cli files-you-want-to-verify`
+- `./romman-cli --update datfiles`, to automatically download latest available datasheets
+- `./romman-cli files-you-want-to-verify`, to verify your ROMs against these
 
-Example usage:
-`./romman-cli myfancyrom.gba`
+Say, you want to verify 'myfancyrom.gba' and 'anotherrom.nds', located somewhere inside './Roms' directory. Just do:
+`./romman-cli ./Roms`
 
-Example output will be like:
-`Romman has finished its job: got 1 files matching provided database and 0 misses`
+After comparing your files with available datasheets (may take a while, if there are many), you will get something like that:
+![Example output](https://i.fiery.me/QMOXB.png?raw=true)
 
-You can also parse content of whole directories. Say, to fetch everything inside (including content of all subdirectories) of "Mydir", just type:
-`./romman-cli ./Mydir`
-
-For complete list of currently available functionality run
+For complete list of currently available functionality, run:
 `./romman-cli -h`
 
 ## Currently implemented:
@@ -36,11 +32,14 @@ For complete list of currently available functionality run
 - Iterative datasheets parsing, so 250mbytes-large file wont eat all your ram
 - Ability to verify ROMs stored inside zip archives
 - `--update-datfiles` flag to download latest available datasheets. Can be used with provider-specific prefixes. If no valid (or no prefixes at all) has been received - will batch-download datasheets from all supported providers. You can get list of valid prefixes by running `romman-cli -h`
+- Notify user if some file with correct hashsum has incorrect filename.
+- `--allow-rename` flag that enables ability to rename files with correct hashsums, but incorrect names. For as long as these arent part of archive
 
 ## TODO:
 
-- Delete non-matching files or move them to separate directory (in case they are archived - move whole archives)
-- Rename matching files with non-matching names (in case they are archived - skip)
+- Flag to delete files with incorrect hashsums (in case they are archived - skip)
+- Flag to move files with incorrect hashsums into provided directory (in case they are archived - skip)
+- Maybe something like `--affect-archives` flag, to enable ability to rename/remove archived files the same way as unarchived, if related action flags has been provided
 - Maybe add ability to verify files by other means than crc32 (e.g md5 or sha1 or just filesize. In case of first two - archives will be skipped, obviously)
 - Maybe log stdout to something like info.log and stderr to error.log
 - Maybe reduce ram usage even further (probably by providing hard limits on maximum database size and dumping it into cache file, if it gets to that point)

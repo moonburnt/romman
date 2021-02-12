@@ -10,7 +10,7 @@ import logging
 import romman
 from sys import exit
 import argparse
-from os import makedirs
+from os import makedirs, rename
 from os.path import join
 
 TOOL_NAME = romman.configuration.TOOL_NAME
@@ -36,6 +36,7 @@ ap.add_argument("items", help=f"Path to ROM file or directory with ROMs to compa
 ap.add_argument("--datfiles", help=f"Custom path to datasheet file or directory with datasheets. If used - {TOOL_NAME} will compare ROMs with these instead of default datasheets. You can supply multiple paths at once. If directory - {TOOL_NAME} will also seek for datasheets in its subdirectories", nargs='*', type=str)
 ap.add_argument("--debug", help=f"Add debug messages to {TOOL_NAME}'s output", action="store_true")
 ap.add_argument("--update-datfiles", help=f"Download latest available datasheets. Can be used with provider-specific prefixes. If no valid prefixes has been received - will batch-download datasheets from all supported providers. Valid prefixes are the following: {NOINTRO_PREFIX}, {REDUMP_PREFIX}, {TOSEC_PREFIX}, {MAME_PREFIX}", nargs='*', type=str)
+ap.add_argument("--allow-rename", help=f"Rename ROMs that match datasheet hashes, but have incorrect filenames. Doesnt affect files inside archives", action="store_true")
 args = ap.parse_args()
 
 if args.debug:
@@ -137,20 +138,36 @@ if not files:
     exit(1)
 
 log.debug(f"Got following files to process: {files}")
-#This will only find the very first match. If file exists in multiple datsheets - the rest will be ignored
-matches = 0
-for item in files:
-    for entry in database:
-        try:
-            if item['crc'] == entry['crc']:
-                log.info(f"{item['path']} match {entry['name']} in {entry['group']} of {entry['category']}!")
-                matches += 1
-                break #this only breaks "for entry" cycle - "for item" continues with next file
-        except Exception as e:
-            log.warning(f"Couldnt compare {item['path']} with {entry['name']}: {e}. Skipping")
-            continue
+#This may backfire if some entry match multiple datasheets
+#But I never experienced it thus far to be sure
+matching_files = [(item, entry) for item in files for entry in database if item['crc'] == entry['crc']]
 
-errors = len(filepaths) - len(files)
-misses = len(files) - matches
+incorrect_names_counter = 0
+renamed_files_counter = 0
+for item, entry in matching_files:
+    log.info(f"{item['path']} match {entry['name']} in {entry['group']} of {entry['category']}!")
 
-print(f"{TOOL_NAME} has finished its job: got {matches} hits, {misses} misses and {errors} errors")
+    if item['name'] != entry ['name']:
+        incorrect_names_counter += 1
+        if args.allow_rename and not item['is_zip']:
+            original_name = item['path']
+            new_name = join(item['location'], entry['name'])
+            log.info(f'Renaming {original_name} to {new_name}')
+            #maybe put this on try/except?
+            rename(original_name, new_name)
+            renamed_files_counter += 1
+        if args.allow_rename and item['is_zip']:
+            log.warning(f"{item['path']} has incorrect name, but is part of archive - wont rename")
+        if not args.allow_rename:
+            log.warning(f"{item['path']} has incorrect name. Is {item['name']}, should be {entry['name']}")
+
+matches_counter = len(matching_files)
+errors_counter = len(filepaths) - len(files)
+misses_counter = len(files) - matches_counter
+ignored_renames_counter = incorrect_names_counter - renamed_files_counter
+
+
+print(f"{TOOL_NAME} has finished its job:")
+print(f"Got {matches_counter} ROMs matching provided datasheets, {misses_counter} non-matching and was unable to process {errors_counter} files.")
+if args.allow_rename and incorrect_names_counter:
+    print(f"Out of {incorrect_names_counter} files with incorrect names, {renamed_files_counter} were renamed and {ignored_renames_counter} skipped.")
