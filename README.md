@@ -49,4 +49,4 @@ For complete list of currently available functionality, run:
 
 ## License:
 
-For memes, [ACSL v1.4](LICENSE)
+[GPLv3](LICENSE)
