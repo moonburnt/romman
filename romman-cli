@@ -37,23 +37,45 @@ MAME_PREFIX = romman.configuration.MAME_PREFIX
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter(fmt='[%(asctime)s][%(name)s][%(levelname)s] %(message)s', datefmt='%H:%M:%S'))
+formatter = logging.Formatter(
+                        fmt='[%(asctime)s][%(name)s][%(levelname)s] %(message)s',
+                        datefmt='%H:%M:%S',
+                        )
+handler.setFormatter(formatter)
 log.addHandler(handler)
 
 #argparse shenanigans
 ap = argparse.ArgumentParser()
-ap.add_argument("items", help=f"Path to ROM file or directory with ROMs to compare with database. You can supply multiple paths at once. If directory - {TOOL_NAME} will also seek for ROMs in its subdirectories", nargs='*', type=str)
-ap.add_argument("--datfiles", help=f"Custom path to datasheet file or directory with datasheets. If used - {TOOL_NAME} will compare ROMs with these instead of default datasheets. You can supply multiple paths at once. If directory - {TOOL_NAME} will also seek for datasheets in its subdirectories", nargs='*', type=str)
-ap.add_argument("--debug", help=f"Add debug messages to {TOOL_NAME}'s output", action="store_true")
-ap.add_argument("--update-datfiles", help=f"Download latest available datasheets. Can be used with provider-specific prefixes. If no valid prefixes has been received - will batch-download datasheets from all supported providers. Valid prefixes are the following: {NOINTRO_PREFIX}, {REDUMP_PREFIX}, {TOSEC_PREFIX}, {MAME_PREFIX}", nargs='*', type=str)
-ap.add_argument("--allow-rename", help=f"Rename ROMs that match datasheet hashes, but have incorrect filenames. Doesnt affect files inside archives", action="store_true")
+ap.add_argument("items", help=(
+        "Path to ROM file or directory with ROMs to compare with database. You "
+        f"can supply multiple paths at once. If directory - {TOOL_NAME} will "
+        "also seek for ROMs in its subdirectories"
+                ), nargs='*', type=str)
+ap.add_argument("--datfiles", help=(
+        "Custom path to datasheet file or directory with datasheets. If used - "
+        f"{TOOL_NAME} will compare ROMs with these instead of default datasheets. "
+        f"You can supply multiple paths at once. If directory - {TOOL_NAME} will "
+        "also seek for datasheets in its subdirectories"
+            ), nargs='*', type=str)
+ap.add_argument("--debug", help=f"Add debug messages to {TOOL_NAME}'s output",
+                           action="store_true")
+ap.add_argument("--update-datfiles", help=(
+        "Download latest available datasheets. Can be used with provider-specific "
+        "prefixes. If no valid prefixes has been received - will batch-download "
+        "datasheets from all supported providers. Valid prefixes are the following: "
+        f"{NOINTRO_PREFIX}, {REDUMP_PREFIX}, {TOSEC_PREFIX}, {MAME_PREFIX}"
+        ), nargs='*', type=str)
+ap.add_argument("--allow-rename", help=(
+        "Rename ROMs that match datasheet hashes, but have incorrect filenames. "
+        "Doesnt affect files inside archives"
+        ), action="store_true")
 args = ap.parse_args()
 
 if args.debug:
     log.setLevel(logging.DEBUG) #Overriding default value from above
 
-#this is nasty as hell, but thats the best way to ensure that args.update_datfiles has been passed
-#even if its empty. Or at least out of solutions I've found. Maybe there is better
+#this is nasty as hell, but thats the best way to ensure that args.update_datfiles
+#has been passed even if its empty. Or at least out of solutions I've found
 try:
     len(args.update_datfiles)
 except:
@@ -73,7 +95,7 @@ if args.datfiles:
 else:
     datasheets = [DEFAULT_DATASHEETS_DIRECTORY]
 
-log.info("Loading the database")
+log.info("Loading the database (may take a while)")
 data_files = []
 for item in datasheets:
     try:
@@ -93,17 +115,22 @@ for item in datasheets:
         data_files.extend(df)
 
 if not data_files:
-    log.critical(f"Couldnt find any valid data files! Either place them manually into {DEFAULT_DATASHEETS_DIRECTORY} or run {LAUNCHER_NAME} --update-datfiles to download latest datasheets from supported sources")
+    log.critical(
+        "Couldnt find any valid data files! Either place them manually into "
+        f"{DEFAULT_DATASHEETS_DIRECTORY} or run {LAUNCHER_NAME} --update-datfiles "
+        "to download latest datasheets from supported sources"
+        )
     exit(1)
 
 database = []
 for item in data_files:
-    #this check is meh, but important - applying wrong parser to wrong file worthy hundreds of mbytes may eat all ram
+    #this check is meh, but important - applying wrong parser to wrong file worthy
+    #hundreds of mbytes may eat all ram
     if item.endswith('.dat'.lower()):
-        log.debug(f"Guessing that {item} is standard .dat file and proceeding accordingly")
+        log.debug(f"Guessing that {item} is standard .dat file")
         parser = romman.data_parsers.dat_file
     elif item.endswith('.xml'.lower()):
-        log.debug(f"Guessing that {item} is mame .xml file and proceeding accordingly")
+        log.debug(f"Guessing that {item} is mame .xml file")
         parser = romman.data_parsers.mame_xml
     else:
         log.warning(f"Couldnt process data file {item}: unknown file format")
@@ -155,7 +182,8 @@ matching_files = [(item, entry) for item in files for entry in database if item[
 incorrect_names_counter = 0
 renamed_files_counter = 0
 for item, entry in matching_files:
-    log.info(f"{item['path']} match {entry['name']} in {entry['group']} of {entry['category']}!")
+    log.info(f"{item['path']} match {entry['name']} in "
+             f"{entry['group']} of {entry['category']}!")
 
     if item['name'] != entry ['name']:
         incorrect_names_counter += 1
@@ -167,17 +195,20 @@ for item, entry in matching_files:
             rename(original_name, new_name)
             renamed_files_counter += 1
         elif args.allow_rename and item['is_zip']:
-            log.warning(f"{item['path']} has incorrect name, but is part of archive - wont rename")
+            log.warning(f"{item['path']} has incorrect name, but is "
+                         "part of archive - wont rename")
         else:
-            log.warning(f"{item['path']} has incorrect name. Is {item['name']}, should be {entry['name']}")
+            log.warning(f"{item['path']} has incorrect name. "
+                        f"Is {item['name']}, should be {entry['name']}")
 
 matches_counter = len(matching_files)
 errors_counter = len(filepaths) - len(files)
 misses_counter = len(files) - matches_counter
 ignored_renames_counter = incorrect_names_counter - renamed_files_counter
 
-
 print(f"{TOOL_NAME} has finished its job:")
-print(f"Got {matches_counter} ROMs matching provided datasheets, {misses_counter} non-matching and was unable to process {errors_counter} files.")
+print(f"Got {matches_counter} ROMs matching provided datasheets, {misses_counter} "
+      f"non-matching and was unable to process {errors_counter} files.")
 if args.allow_rename and incorrect_names_counter:
-    print(f"Out of {incorrect_names_counter} files with incorrect names, {renamed_files_counter} were renamed and {ignored_renames_counter} skipped.")
+    print(f"Out of {incorrect_names_counter} files with incorrect names, "
+          f"{renamed_files_counter} were renamed and {ignored_renames_counter} skipped.")

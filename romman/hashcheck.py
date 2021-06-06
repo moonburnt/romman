@@ -24,8 +24,8 @@ log = logging.getLogger(__name__)
 
 DEFAULT_CHUNK_SIZE = 4096
 
-def md5sum(filepath, chunk_size = DEFAULT_CHUNK_SIZE):
-    '''Receives str(path to file). Optionally receives int(chunk size) (if not set or is lower than DEFAULT_CHUNK_SIZE - will fall back to it). Calculates md5 of file, chunk-by-chunk and returns str with sum of result'''
+def md5sum(filepath:str, chunk_size:int = DEFAULT_CHUNK_SIZE):
+    '''Calculates md5 of a file, chunk-by-chunk and returns str with sum of result'''
     log.debug(f"Processing the file {filepath}")
     #ensuring that chunk_size is not less than default
     if chunk_size < DEFAULT_CHUNK_SIZE:
@@ -33,17 +33,19 @@ def md5sum(filepath, chunk_size = DEFAULT_CHUNK_SIZE):
     log.debug(f"Chunk size has been set to {chunk_size}")
 
     hs = md5()
-    with open(filepath, "rb") as f: #'b' coz hashsum is calculated by file's binary content
+    #'b' coz hashsum is calculated by file's binary content
+    with open(filepath, "rb") as f:
         for chunk in iter(lambda: f.read(chunk_size), b""):
-            hs.update(chunk) #this adds hashes of new chunks to previously calculated ones
+            #this adds hashes of new chunks to previously calculated ones
+            hs.update(chunk)
 
     hashsum = hs.hexdigest()
 
     log.debug(f"Got md5 sum: {hashsum}")
     return hashsum
 
-def crc32sum(filepath):
-    '''Receives str(path to file). Calculates crc32 of file and returns str with sum of result'''
+def crc32sum(filepath:str):
+    '''Calculates crc32 of a file and returns str with sum of result'''
     #TODO: add ability to calculate crc by chunks
     log.debug(f"Processing the file {filepath}")
     with open(filepath, "rb") as f:

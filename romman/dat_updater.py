@@ -44,19 +44,37 @@ SESSION.timeout = 100
 log = logging.getLogger(__name__)
 
 def get_nointro():
-    '''Downloads daily nointro dat pack in zip, saves into DATASHEETS_DOWNLOAD_DIRECTORY/NOINTRO_PREFIX'''
+    '''Downloads daily nointro dat pack in zip.
+    Saves into DATASHEETS_DOWNLOAD_DIRECTORY/NOINTRO_PREFIX'''
     url = f'{NOINTRO_URL}/index.php?page=download&op=daily&s=64'
     log.debug(f"Attempting to download latest nointro datasheets from {url}")
-    get_download_link = SESSION.post(url, headers={'referer': url}, data={'dat_type': 'standard', 'daily_download': 'Prepare', 'recaptcha_response': ""})
+    get_download_link = SESSION.post(url,
+                                     headers={'referer': url},
+                                     data={
+                                           'dat_type': 'standard',
+                                           'daily_download': 'Prepare',
+                                           'recaptcha_response': "",
+                                           },
+                                    )
     download_link = get_download_link.url
-    log.debug(f"Got download link: {download_link}, trying to fetch archive (may take a while)")
-    datasheet_archive = SESSION.post(download_link, headers={'referer': download_link}, data={'wtwtwtf': 'Download', 'what_im_doing_here': ""})
-    log.debug(f"Successfully retrieved datasheets archive, attempting to save to disk")
+    log.debug(f"Got download link: {download_link}. "
+               "Trying to fetch archive (may take a while)")
+    datasheet_archive = SESSION.post(download_link,
+                                     headers={'referer': download_link},
+                                     data={
+                                            'wtwtwtf': 'Download',
+                                            'what_im_doing_here': "",
+                                            },
+                                    )
+    log.debug(f"Successfully retrieved datasheets archive, attempting to save")
     download_directory = join(DATASHEETS_DOWNLOAD_DIRECTORY, NOINTRO_PREFIX)
-    file_processing.save_file(datasheet_archive.content, 'nointro.zip', download_directory)
+    file_processing.save_file(data = datasheet_archive.content,
+                              filename = 'nointro.zip',
+                              filedir = download_directory)
 
 def get_tosec():
-    '''Downloads latest available tosec dat pack in zip, saves into DATASHEETS_DOWNLOAD_DIRECTORY/TOSEC_PREFIX'''
+    '''Downloads latest available tosec dat pack in zip.
+    Saves into DATASHEETS_DOWNLOAD_DIRECTORY/TOSEC_PREFIX'''
     url = f'{TOSEC_URL}/downloads'
     log.debug(f"Attempting to download latest tosec datasheets from {url}")
     get_downloads = SESSION.get(url)
@@ -66,14 +84,18 @@ def get_tosec():
     download_page = SESSION.get(download_page_url)
     dps = findall('<a class="" href="(.*?)"', download_page.text)
     download_link = f"{TOSEC_URL}{dps[0]}"
-    log.debug(f"Got downloads link: {download_link}, trying to fetch archive (may take a while)")
+    log.debug(f"Got downloads link: {download_link}. "
+               "Trying to fetch archive (may take a while)")
     datasheet_archive = SESSION.get(download_link)
-    log.debug(f"Successfully retrieved datasheets archive, attempting to save to disk")
+    log.debug(f"Successfully retrieved datasheets archive, attempting to save")
     download_directory = join(DATASHEETS_DOWNLOAD_DIRECTORY, TOSEC_PREFIX)
-    file_processing.save_file(datasheet_archive.content, 'tosec.zip', download_directory)
+    file_processing.save_file(data = datasheet_archive.content,
+                              filename = 'tosec.zip',
+                              filedir = download_directory)
 
 def get_redump():
-    '''Downloads latest available redump dat packs in zip, saves into DATASHEETS_DOWNLOAD_DIRECTORY/REDUMP_PREFIX'''
+    '''Downloads latest available redump dat packs in zip.
+    Saves into DATASHEETS_DOWNLOAD_DIRECTORY/REDUMP_PREFIX'''
     url = f'{REDUMP_URL}/downloads'
     log.debug(f"Attempting to download latest redump datasheets from {url}")
     get_downloads = SESSION.get(url)
@@ -85,28 +107,38 @@ def get_redump():
     for item in dl:
         download_link = f'{REDUMP_URL}/datfile/{item}/'
         filename = f'redump-{item}.zip'
-        log.debug(f"Got downloads link: {download_link}, trying to fetch archive (may take a while)")
+        log.debug(f"Got downloads link: {download_link}. "
+                   "Trying to fetch archive (may take a while)")
         datasheet_archive = SESSION.get(download_link)
-        log.debug(f"Successfully retrieved datasheets archive, attempting to save to disk")
+        log.debug(f"Successfully retrieved datasheets archive, attempting to save")
         download_directory = join(DATASHEETS_DOWNLOAD_DIRECTORY, REDUMP_PREFIX)
-        file_processing.save_file(datasheet_archive.content, filename, download_directory)
+        file_processing.save_file(data = datasheet_archive.content,
+                                  filename = filename,
+                                  filedir = download_directory)
         sleep(3) #smol pause to avoid getting banned for loads of requests
 
 def get_mame():
-    '''Downloads latest available mame dat pack in zip, saves into DATASHEETS_DOWNLOAD_DIRECTORY/MAME_PREFIX'''
+    '''Downloads latest available mame dat pack in zip.
+    Saves into DATASHEETS_DOWNLOAD_DIRECTORY/MAME_PREFIX'''
     url = f'{MAME_URL}/release.php'
     log.debug(f"Attempting to download latest mame datasheet from {url}")
     get_downloads = SESSION.get(url)
     dl = findall('<a href="(.*?).zip">', get_downloads.text)
     download_link = f"{dl[0]}.zip"
-    log.debug(f"Got downloads link: {download_link}, trying to fetch archive (may take a while)")
+    log.debug(f"Got downloads link: {download_link}. "
+               "Trying to fetch archive (may take a while)")
     datasheet_archive = SESSION.get(download_link)
-    log.debug(f"Successfully retrieved datasheets archive, attempting to save to disk")
+    log.debug(f"Successfully retrieved datasheets archive, attempting to save")
     download_directory = join(DATASHEETS_DOWNLOAD_DIRECTORY, MAME_PREFIX)
-    file_processing.save_file(datasheet_archive.content, 'mame.zip', download_directory)
+    file_processing.save_file(data = datasheet_archive.content,
+                              filename = 'mame.zip',
+                              filedir = download_directory)
 
-def datasheets_updater(sources):
-    '''Receives sources list. Match it against known prefixes, then for all matches - downloads related latest datasheets and unpack them into their subdirectories inside DEFAULT_DATASHEETS_DIRECTORY. If no valid arguments has been provided - will batch-download all datasheets'''
+def datasheets_updater(sources:list):
+    '''Match received sources against known prefixes, then for all matches -
+    download related latest datasheets and unpack them into their subdirectories
+    inside DEFAULT_DATASHEETS_DIRECTORY. If no valid arguments has been provided
+    - will batch-download all datasheets'''
     log.debug('Determining the list of download sources')
     #using sets to avoid situations when user supplied multiple arguments of same value
     #could only do that for non-default thing, but I want consistency
@@ -147,7 +179,7 @@ def datasheets_updater(sources):
 
         datasheets_directory = join(DEFAULT_DATASHEETS_DIRECTORY, prefix)
         log.debug(f"Removing old datasheets from {datasheets_directory}")
-        #hopefully our user dont store anything of value inside datasheets_directory or its subdirs
+        #hopefully our user dont store anything of value inside datasheets_directory
         old_datasheets = file_processing.get_files(datasheets_directory)
         for f in old_datasheets:
             try:
@@ -157,7 +189,9 @@ def datasheets_updater(sources):
                 log.warning(f"Unable to remove {f}: {e}. Skipping")
                 continue
 
-        log.debug(f"Extracting datasheets from {archive_directory} to {datasheets_directory}")
+        log.debug(
+        f"Extracting datasheets from {archive_directory} to {datasheets_directory}"
+        )
         for ar in archives:
             #avoiding tosec-specific issue with archives containing non-dat garbage
             if prefix == TOSEC_PREFIX:
@@ -169,7 +203,9 @@ def datasheets_updater(sources):
             try:
                 file_processing.extract_zip(*extractor_args)
             except Exception as e:
-                log.warning(f"Unable to extract {ar} into {datasheets_directory}: {e}. Skipping")
+                log.warning(
+                f"Unable to extract {ar} into {datasheets_directory}: {e}. Skipping"
+                )
                 continue
             else:
                 log.debug(f"Removing {ar} from cache")

@@ -21,10 +21,11 @@ from lxml import etree
 
 log = logging.getLogger(__name__)
 
-def dat_header_fetcher(datafile):
-    '''Receives str(path/to/datasheet.dat), fetches group (usually name of console) and category (nointro/redump/etc). Returns str(group), str(category)'''
+def dat_header_fetcher(datafile:str):
+    '''Fetches group (usually name of console) and category (nointro/redump/etc)
+    from provided datafile and returns them'''
     log.debug(f"Attempting to fetch header from {datafile}")
-    #idk why, but without "," at the end of "events" it would crash
+    #events expect tuple, so its like that
     raw_header = etree.iterparse(datafile, events=('end',), tag='header')
 
     for event, item in raw_header:
@@ -34,7 +35,7 @@ def dat_header_fetcher(datafile):
         except:
             #this tag presents in non-iso tosec dumps INSTEAD of "homepage"
             category = item.find('category').text
-        #clearing up the stuff (idk if it makes much difference there, but just to be safe
+        #clearing up the stuff (just to be safe)
         item.clear()
         while item.getprevious() is not None:
             del item.getparent()[0]
@@ -43,25 +44,28 @@ def dat_header_fetcher(datafile):
 
     return group, category
 
-def roms_fetcher(datafile, tag, group, category):
-    '''Receives str(path/to/datasheet.dat), str(tag, we will search for), str(title/name of datasheet) and str(group that made datasheet) returns list with games from that file (game name, files, hash sums, name of datasheet and group that made it)'''
+def roms_fetcher(datafile:str, tag:str, group:str, category:str):
+    '''Returns list with games data from provided datafile'''
     log.debug(f"Attempting to info about roms from {datafile}")
     raw_roms = etree.iterparse(datafile, events=('end',), tag=tag)
 
     data_list = []
     for event, item in raw_roms:
         game_name = item.find('description').text
-        #I could go for separate loop, but Im lazy so Im doing another 'for' cycle inside
         for entry in item.findall('rom'):
-            #this will reduce ram usage even further, coz we only log necessary info of matching entries
+            #this will reduce ram usage even further, coz we only log necessary
+            #info of matching entries
             entry_data = {}
             entry_data['name'] = entry.attrib['name']
             try:
-                #if I will ever decide to implement md5/sha1 verification - this will need adjustments
+                #if I will ever decide to implement md5/sha1 verification - this
+                #will need adjustments
                 #applying 'lower', coz nointro has hashes in caps
                 entry_data['crc'] = entry.attrib['crc'].lower()
             except KeyError:
-                log.debug(f"{entry_data['name']} has no valid hash information. Skipping")
+                log.debug(
+                f"{entry_data['name']} has no valid hash information. Skipping"
+                )
                 continue
             entry_data['game'] = game_name
             entry_data['group'] = group
@@ -74,14 +78,17 @@ def roms_fetcher(datafile, tag, group, category):
         #removing the item itself
         item.clear()
         #removing all non-empty references to that item
-        while item.getprevious() is not None: #I know how it looks, but this check is there to avoid "FutureWarning":
+        #I know how it looks, but this check is there to avoid "FutureWarning"
+        while item.getprevious() is not None:
             del item.getparent()[0]
 
     log.debug(f"Obtained {len(data_list)} roms from {datafile}")
     return data_list
 
-def dat_file(datafile):
-    '''Receives str(path/to/datasheet.dat), returns list with games from that file (game name, files, hash sums, name of datasheet and group that made it). Only standard DAT is supported - attempting to parse other xmls will throw error, due to different internal structure'''
+def dat_file(datafile:str):
+    '''Returns list with game data from dat file.
+    Only standard DAT is supported - attempting to parse other xmls will throw
+    error, due to different internal structure'''
     log.debug(f"Processing datasheet: {datafile}")
 
     group, category = dat_header_fetcher(datafile)
@@ -91,8 +98,9 @@ def dat_file(datafile):
     log.debug(f"Successfully fetched data from {datafile}, returning")
     return data
 
-def mame_xml(xmlfile):
-    '''Receives str(path/to/mamedatafile.xml), returns list with games from that file (game name, files, hash sums, name of datasheet and group that made it). Only xml from zip from https://www.mamedev.org/release.php is supported'''
+def mame_xml(xmlfile:str):
+    '''Returns list with game data from xml file.
+    Only xml from zip from https://www.mamedev.org/release.php is supported'''
 
     log.debug(f"Processing mame xml: {xmlfile}")
     group, category = "MAME", "mamedev"

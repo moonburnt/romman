@@ -16,10 +16,10 @@
 
 from os.path import join
 
-# This module contains default configuration variables, to reffer to from other modules
+# Default configuration variables, to refer to from other modules
 TOOL_NAME = "romman"
 PROGRAM_DIRECTORY = '.' #to be replaced with other stuff later
-CACHE_DIRECTORY = join(PROGRAM_DIRECTORY, 'Cache') #maybe overkill, but for crossplatform compatibility
+CACHE_DIRECTORY = join(PROGRAM_DIRECTORY, 'Cache')
 DEFAULT_DATASHEETS_DIRECTORY = join(PROGRAM_DIRECTORY, "Datasheets")
 
 NOINTRO_PREFIX = "nointro"

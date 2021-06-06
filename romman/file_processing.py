@@ -24,10 +24,11 @@ from romman import hashcheck
 
 log = logging.getLogger(__name__)
 
-def get_files(pathtodir):
-    '''Receives str(path to directory with files), returns list(files in directory)'''
+def get_files(pathtodir:str):
+    '''Returns list of files in directory'''
     files = []
-    #this check is useless in loop below, but allows to use this function to verify every item passed by user
+    #this check is useless in loop below, but allows to use this function to
+    #verify every item passed by user
     #maybe I should move it to separate function, but for now I wont bother
     if isfile(pathtodir):
         log.debug(f"{pathtodir} itself is a file, returning")
@@ -42,8 +43,9 @@ def get_files(pathtodir):
         log.debug(f"Processing {item}")
         itempath = join(pathtodir, item)
         if isdir(itempath):
-            log.debug(f"{itempath} leads to directory, attempting to process its content")
-            files += get_files(itempath) #looping over this very function for all subdirectories
+            log.debug(f"{itempath} leads to directory, processing its content")
+            #looping over this very function for all subdirectories
+            files += get_files(itempath)
         else:
             #assuming that everything that isnt directory is file
             log.debug(f"{itempath} leads to file, adding to list")
@@ -52,8 +54,8 @@ def get_files(pathtodir):
     log.debug(f"Got following files in total: {files}")
     return files
 
-def get_zip_info(pathtofile):
-    '''Receives str(path/to/zipfile.zip. Return list containing dictionaries with each file's info - name, hashsum, path to file inside archive, full path to archive and mention that its zip archive'''
+def get_zip_info(pathtofile:str):
+    '''Returns list with zip's internal files info: name, crc, path, inner filepaths'''
     log.debug(f"Attempting to parse zip archive: {pathtofile}")
 
     datalist = []
@@ -83,11 +85,12 @@ def get_zip_info(pathtofile):
     log.debug(f"Successfully fetched data from {pathtofile}, returning")
     return datalist
 
-def get_file_info(pathtofile):
-    '''Receives str(path/to/file). Returns list containing dictionary with filename, hashsum, full path to file, file's location and mention that its not zip archive'''
+def get_file_info(pathtofile:str):
+    '''Returns info about normal file: name, crc, path, name of directory'''
     log.debug(f"Attempting to fetch info from {pathtofile}")
 
-    #List is completely unnecessary, but since zip files have these - I kinda have to follow same route
+    #List is completely unnecessary, but since zip files have these - I kinda have
+    #to follow same route
     #I mean - its needed either there or within file processor. For now its there
     datalist = []
 
@@ -103,13 +106,16 @@ def get_file_info(pathtofile):
         log.debug(f"Got following data: {data}")
         datalist.append(data)
 
-    #yeah, I know. If crc == 0, returning empty list. It will be .extended to other, regardless
+    #yeah, I know. If crc == 0, returning empty list.
+    #It will be .extended to other, regardless
     log.debug(f"Successfully fetched data from {pathtofile}, returning")
     return datalist
 
-
-def file_processor(pathtofile):
-    '''Receives str(path/to/file). Depending on if its zip or not - fetches info from it as archive or calculates manually. Return list with dictionary containing info about filepath, file's name and crc (or, in case its archive - names and crc of all files inside), also if its zip or not'''
+def file_processor(pathtofile:str):
+    '''Depending on received file's type - fetches info from it as archive or
+    calculates manually. Return list with dictionary containing info about filepath,
+    file's name and crc (or, in case its archive - names and crc of all files inside),
+    also if its zip or not'''
 
     log.debug(f"Determining filetype of {pathtofile}")
     if is_zipfile(pathtofile):
@@ -122,8 +128,8 @@ def file_processor(pathtofile):
     log.debug(f"Successfully gathered info about {pathtofile}, returning")
     return data
 
-def save_file(data, filename, filedir):
-    '''Receives data in binary form, str(name of file) and str(directory to save that file into). Saves provided data as filedir/filename'''
+def save_file(data, filename:str, filedir:str):
+    '''Saves provided binary data as filedir/filename'''
     #avoiding the situation when filedir doesnt exist
     makedirs(filedir, exist_ok=True)
     save_path = join(filedir, filename)
@@ -135,8 +141,9 @@ def save_file(data, filename, filedir):
 
     log.debug(f"Successfully saved {filename} as {save_path}")
 
-def extract_zip(path_to_zip, output_directory, extract_dirs=None):
-    '''Receives str(path to zip archive) and str(directory to unpack it to). Optionally receives list(directories, from which to extract content). Unpacks everything (in case no valid arguments has been provided) or content of all selected zip's directories into provided directory'''
+def extract_zip(path_to_zip:str, output_directory:str, extract_dirs:list = None):
+    '''Unpacks everything (in case no valid arguments has been provided) or
+    content of all selected zip's directories into provided directory'''
     log.debug(f"Attempting to unpack {path_to_zip} into {output_directory}")
     makedirs(output_directory, exist_ok=True)
 
