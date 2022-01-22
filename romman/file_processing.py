@@ -71,12 +71,9 @@ def get_zip_info(pathtofile:str):
                 data = {}
                 #this is necessary coz file may be in subdirectory
                 data['name'] = basename(internal_path)
-                hex_crc = hex(raw_crc)
-                data['crc'] = hex_crc.replace('0x', '')
-                #this may be jank, but will do for log output
-                #which is the only thing why this entry exists anyway
-                data['path'] = join(pathtofile, internal_path)
-                #unlike normal files - this one is located inside zip, so its kinda logical
+                data['crc'] = f"{raw_crc:x}"
+                data['path'] = internal_path
+                #unlike normal files - this one is located inside archive, so its kinda logical
                 data['location'] = pathtofile
                 data['is_archive'] = 'zip'
 
@@ -102,12 +99,9 @@ def get_7z_info(pathtofile:str):
                 data = {}
                 #this is necessary coz file may be in subdirectory
                 data['name'] = basename(internal_path)
-                hex_crc = hex(raw_crc)
-                data['crc'] = hex_crc.replace('0x', '')
-                #this may be jank, but will do for log output
-                #which is the only thing why this entry exists anyway
-                data['path'] = join(pathtofile, internal_path)
-                #unlike normal files - this one is located inside zip, so its kinda logical
+                data['crc'] = f"{raw_crc:x}"
+                data['path'] = internal_path
+                #unlike normal files - this one is located inside archive, so its kinda logical
                 data['location'] = pathtofile
                 data['is_archive'] = '7z'
 
