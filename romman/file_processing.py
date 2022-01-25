@@ -18,6 +18,7 @@
 
 import logging
 from zipfile import ZipFile, is_zipfile
+from py7zr import SevenZipFile, is_7zfile
 from os import listdir, makedirs
 from os.path import isfile, isdir, join, basename, dirname
 from romman import hashcheck
@@ -70,14 +71,39 @@ def get_zip_info(pathtofile:str):
                 data = {}
                 #this is necessary coz file may be in subdirectory
                 data['name'] = basename(internal_path)
-                hex_crc = hex(raw_crc)
-                data['crc'] = hex_crc.replace('0x', '')
-                #this may be jank, but will do for log output
-                #which is the only thing why this entry exists anyway
-                data['path'] = join(pathtofile, internal_path)
-                #unlike normal files - this one is located inside zip, so its kinda logical
+                data['crc'] = f"{raw_crc:x}"
+                data['path'] = internal_path
+                #unlike normal files - this one is located inside archive, so its kinda logical
                 data['location'] = pathtofile
-                data['is_zip'] = True
+                data['is_archive'] = 'zip'
+
+                log.debug(f"Got following data: {data}")
+                datalist.append(data)
+
+    log.debug(f"Successfully fetched data from {pathtofile}, returning")
+    return datalist
+
+def get_7z_info(pathtofile:str):
+    '''Returns list with 7z's internal files info: name, crc, path, inner filepaths'''
+    log.debug(f"Attempting to parse 7z archive: {pathtofile}")
+
+    datalist = []
+    with SevenZipFile(pathtofile, 'r') as sevenzf:
+        for f in sevenzf.files:
+            raw_crc = f.crc32
+            internal_path = f.filename
+            if raw_crc == 0:
+                log.debug(f'{internal_path} is directory or empty, skipping')
+                continue
+            else:
+                data = {}
+                #this is necessary coz file may be in subdirectory
+                data['name'] = basename(internal_path)
+                data['crc'] = f"{raw_crc:x}"
+                data['path'] = internal_path
+                #unlike normal files - this one is located inside archive, so its kinda logical
+                data['location'] = pathtofile
+                data['is_archive'] = '7z'
 
                 log.debug(f"Got following data: {data}")
                 datalist.append(data)
@@ -101,7 +127,7 @@ def get_file_info(pathtofile:str):
         data['crc'] = crc
         data['path'] = pathtofile
         data['location'] = dirname(pathtofile)
-        data['is_zip'] = False
+        data['is_archive'] = False
 
         log.debug(f"Got following data: {data}")
         datalist.append(data)
@@ -121,8 +147,11 @@ def file_processor(pathtofile:str):
     if is_zipfile(pathtofile):
         log.debug(f"Seems like {pathtofile} is zip archive, proceeding accordingly")
         data = get_zip_info(pathtofile)
+    elif is_7zfile(pathtofile):
+        log.debug(f"Seems like {pathtofile} is 7z archive, proceeding accordingly")
+        data = get_7z_info(pathtofile)
     else:
-        log.debug(f"{pathtofile} doesnt seem to be zip, threating as file")
+        log.debug(f"{pathtofile} doesnt seem to be an archive, treating as file")
         data = get_file_info(pathtofile)
 
     log.debug(f"Successfully gathered info about {pathtofile}, returning")

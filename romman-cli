@@ -182,27 +182,38 @@ matching_files = [(item, entry) for item in files for entry in database if item[
 incorrect_names_counter = 0
 renamed_files_counter = 0
 for item, entry in matching_files:
-    log.info(f"{item['path']} match {entry['name']} in "
-             f"{entry['group']} of {entry['category']}!")
+    output_name = item['path']
+    if item['is_archive']:
+        output_name = join(item['location'], item['path'])
 
-    if item['name'] != entry ['name']:
+    log.info(f"'{output_name}' matches '{entry['name']}' in '{join(entry['category'], entry['group'])}'!")
+
+    if item['name'] != entry['name']:
         incorrect_names_counter += 1
-        if args.allow_rename and not item['is_zip']:
-            original_name = item['path']
+        if args.allow_rename and not item['is_archive']:
             new_name = join(item['location'], entry['name'])
-            log.info(f'Renaming {original_name} to {new_name}')
+            log.info(f"Renaming '{output_name}' to '{new_name}'")
             #maybe put this on try/except?
-            rename(original_name, new_name)
+            rename(output_name, new_name)
             renamed_files_counter += 1
-        elif args.allow_rename and item['is_zip']:
-            log.warning(f"{item['path']} has incorrect name, but is "
+        elif args.allow_rename and item['is_archive']:
+            log.warning(f"'{output_name}' has incorrect name, but is "
                          "part of archive - wont rename")
         else:
-            log.warning(f"{item['path']} has incorrect name. "
-                        f"Is {item['name']}, should be {entry['name']}")
+            log.warning(f"'{output_name}' has incorrect name, should be '{entry['name']}'")
+
+#Get list of unique filepaths as archive files may contain multiple files
+unique_filepaths = []
+for file in files:
+    if file['is_archive']:
+        if file['location'] not in unique_filepaths:
+            unique_filepaths.append(file['location'])
+    else:
+        if file['path'] not in unique_filepaths:
+            unique_filepaths.append(file['path'])
 
 matches_counter = len(matching_files)
-errors_counter = len(filepaths) - len(files)
+errors_counter = len(set(filepaths) - set(unique_filepaths))
 misses_counter = len(files) - matches_counter
 ignored_renames_counter = incorrect_names_counter - renamed_files_counter
 
